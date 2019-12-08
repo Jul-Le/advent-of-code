@@ -150,6 +150,7 @@ int main()
         DEBUG("%u has %u parents and %u children\n", parent->id, parent->parentCount, parent->childCount);
         DEBUG("%u has %u parents and %u children\n\n", child->id, child->parentCount, child->childCount);
     }
+    fclose(fp);
     
     printf("Transfers required: %u\n", getTransfers(bodies, yourParent, santasParent));
     
