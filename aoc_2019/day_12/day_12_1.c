@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 #define DEBUG(format, ...)  //printf("%d:%s(): " format, __LINE__, __func__, ##__VA_ARGS__);
@@ -45,10 +44,20 @@ List *createList();
 void List_push_back(List*, Moon*);
 void deleteList(List*);
 
+// Apply gravity
+void calcVel(List*);
+// Apply velocity
+void calcPos(List*);
+
+unsigned long getTotalEnergy(List*);
+unsigned long getKinEnergy(Moon*);
+unsigned long getPotEnergy(Moon*);
+
 int main()
 {
     FILE *fp = parse();
     char buf[256];
+    int i;
     
     List *moons = createList();
     
@@ -57,19 +66,26 @@ int main()
         fgets(buf, 256, fp);
         Moon *moon = createMoon();
         
+        if (strlen(buf) < strlen("<x=0, y=0, z=0>"))
+            break;
+        
         sscanf(buf, "<x=%d, y=%d, z=%d>", &(moon->pos.x), &(moon->pos.y), &(moon->pos.z));
         
+        DEBUG("%s", buf);
+        DEBUG("<x=%d, y=%d, z=%d>\n", moon->pos.x, moon->pos.y, moon->pos.z);
+        
         List_push_back(moons, moon);
+        memset(buf, '\0', strlen(buf));
     }
-    
-    // TODO
-    
     fclose(fp);
     
-    printf("%d\t%d\t%d\n", moons->first->pos.x, moons->first->pos.y, moons->first->pos.z);
-    printf("%d\t%d\t%d\n", moons->first->next->pos.x, moons->first->next->pos.y, moons->first->next->pos.z);
-    printf("%d\t%d\t%d\n", moons->first->next->next->pos.x, moons->first->next->next->pos.y, moons->first->next->next->pos.z);
-    printf("%d\t%d\t%d\n", moons->last->pos.x, moons->last->pos.y, moons->last->pos.z);
+    for (i = 0; i < 1000; i++)
+    {
+        calcVel(moons);
+        calcPos(moons);
+    }
+    
+    printf("Total energy: %lu\n", getTotalEnergy(moons));
     
     deleteList(moons);
     
@@ -150,4 +166,112 @@ void deleteList(List *list)
     }
     free(temp);
     free(list);
+}
+
+void calcVel(List *list)
+{
+    Moon *moon1 = NULL;
+    Moon *moon2 = NULL;
+    static int i = 0;
+    i++;
+    
+    for (moon1 = list->first; moon1 != list->last; moon1 = moon1->next)
+    {
+        for (moon2 = moon1->next; moon2; moon2 = moon2->next)
+        {
+            // Update x
+            if (moon1->pos.x > moon2->pos.x)
+            {
+                moon1->vel.x--;
+                moon2->vel.x++;
+            }
+            else if (moon1->pos.x < moon2->pos.x)
+            {
+                moon1->vel.x++;
+                moon2->vel.x--;
+            }
+            // Update y
+            if (moon1->pos.y > moon2->pos.y)
+            {
+                moon1->vel.y--;
+                moon2->vel.y++;
+            }
+            else if (moon1->pos.y < moon2->pos.y)
+            {
+                moon1->vel.y++;
+                moon2->vel.y--;
+            }
+            // Update z
+            if (moon1->pos.z > moon2->pos.z)
+            {
+                moon1->vel.z--;
+                moon2->vel.z++;
+            }
+            else if (moon1->pos.z < moon2->pos.z)
+            {
+                moon1->vel.z++;
+                moon2->vel.z--;
+            }
+        }
+    }
+    for (moon1 = list->first; moon1; moon1 = moon1->next)
+    {
+        DEBUG("%d> %d, %d, %d\n", i, moon1->vel.x, moon1->vel.y, moon1->vel.z);
+    }
+    DEBUG("\n");
+}
+
+void calcPos(List *list)
+{
+    Moon *moon = NULL;
+    static int i = 0;
+    i++;
+    
+    for (moon = list->first; moon; moon = moon->next)
+    {
+        moon->pos.x += moon->vel.x;
+        moon->pos.y += moon->vel.y;
+        moon->pos.z += moon->vel.z;
+        
+        DEBUG("%d> %d, %d, %d\n", i, moon->pos.x, moon->pos.y, moon->pos.z);
+    }
+    DEBUG("\n");
+}
+
+unsigned long getTotalEnergy(List *list)
+{
+    unsigned long ek, ep, totalEnergy = 0;
+    Moon *moon = NULL;
+    
+    for (moon = list->first; moon; moon = moon->next)
+    {
+        ek = getKinEnergy(moon);
+        ep = getPotEnergy(moon);
+        
+        totalEnergy += ek * ep;
+    }
+    
+    return totalEnergy;
+}
+
+unsigned long getKinEnergy(Moon *moon)
+{
+    unsigned long energy = 0;
+    
+    energy += abs(moon->vel.x);
+    energy += abs(moon->vel.y);
+    energy += abs(moon->vel.z);
+    
+    return energy;
+}
+
+unsigned long getPotEnergy(Moon *moon)
+{
+    unsigned long energy = 0;
+    
+    energy += abs(moon->pos.x);
+    energy += abs(moon->pos.y);
+    energy += abs(moon->pos.z);
+    
+    return energy;
 }
