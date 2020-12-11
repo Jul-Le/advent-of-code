@@ -6,7 +6,7 @@
  *
  *  
  *
- *  Input is a list of adapter joltages. Outlet joltage is 3
+ *  Input is a list of adapter joltages. Outlet joltage is 0
  *  and device joltage is max adapter joltage + 3.
  *
  *  What is the product of 1-jolt differences and 3-jolt
