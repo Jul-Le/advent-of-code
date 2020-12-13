@@ -8,7 +8,6 @@
  *
  *  Input is a list of navigation instructions.
  *
- *
  *  Action N means to move north by the given value.
  *  Action S means to move south by the given value.
  *  Action E means to move east by the given value.
@@ -19,6 +18,9 @@
  *  direction the ship is currently facing.
  *
  *  The ship starts by facing east.
+ *
+ *  What is the manhattan distance to the starting position
+ *  after executing all of the instructions?
  */
 
 #include <algorithm>
